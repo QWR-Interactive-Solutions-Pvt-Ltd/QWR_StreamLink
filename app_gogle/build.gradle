@@ -1,0 +1,120 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.qwr.gogle'
+
+    defaultConfig {
+        applicationId "com.qwr.gogle"
+    }
+
+    signingConfigs {
+        develop {
+            keyAlias 'Remmed-gogle-dev'
+            keyPassword 'remmed'
+            storeFile file('app_gogle_dev.keystore')
+            storePassword 'remmed'
+        }
+        // Platform signing — used for system app installation on real headsets.
+        // Set these four properties in gradle.properties (never commit that file).
+        // Accepted keystore formats: .keystore (PKCS12) or .jks (JKS) — both work here.
+        // If you only have raw .pk8 + .x509.pem keys, convert them to .jks first:
+        //   openssl pkcs8 -in platform.pk8 -inform DER -out platform.pem -nocrypt
+        //   openssl pkcs12 -export -in platform.x509.pem -inkey platform.pem -out platform.p12 -name platform
+        //   keytool -importkeystore -srckeystore platform.p12 -srcstoretype PKCS12 -destkeystore platform.jks
+        platform {
+            storeFile     project.hasProperty('PLATFORM_STORE_FILE')     ? file(PLATFORM_STORE_FILE)          : null
+            storePassword project.findProperty('PLATFORM_STORE_PASSWORD') ?: ''
+            keyAlias      project.findProperty('PLATFORM_KEY_ALIAS')      ?: ''
+            keyPassword   project.findProperty('PLATFORM_KEY_PASSWORD')   ?: ''
+        }
+    }
+
+    buildTypes {
+        debug_develop {
+            versionNameSuffix "-DEBUG"
+            debuggable true
+            signingConfig signingConfigs.develop
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+        }
+        // Platform-signed debug build — installs as android.uid.system on real headsets.
+        // Requires PLATFORM_* properties in gradle.properties.
+        debug_develop_system {
+            versionNameSuffix "-DEBUG"
+            debuggable true
+            signingConfig signingConfigs.platform
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+        }
+        debug_production {
+            versionNameSuffix "-DEBUG"
+            debuggable true
+            signingConfig signingConfigs.develop
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+        }
+        dev_us {
+            versionNameSuffix "-DEV"
+            signingConfig signingConfigs.develop
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_dev"
+        }
+        v_test_us {
+            versionNameSuffix "-TEST"
+            signingConfig signingConfigs.develop
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_test"
+        }
+        preprod_us {
+            versionNameSuffix "-PREPROD"
+            signingConfig signingConfigs.develop
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_preprod"
+        }
+        prod_us {
+            postprocessing {
+                removeUnusedCode true
+                removeUnusedResources true
+                obfuscate true
+                optimizeCode true
+                proguardFile 'proguard-rules.pro'
+            }
+            signingConfig signingConfigs.develop
+            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+        }
+    }
+
+    variantFilter { variant ->
+        def name = variant.buildType.name
+        // Always ignore the default Gradle build types — all builds use custom types above.
+        if (name == 'release' || name == 'debug') {
+            variant.setIgnore(true)
+        }
+        // Hide the platform-signed variant entirely when keys are not configured,
+        // so Gradle sync does not warn about an incomplete signing config.
+        if (name == 'debug_develop_system' && !project.hasProperty('PLATFORM_STORE_FILE')) {
+            variant.setIgnore(true)
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildType = variant.buildType.name
+            def version = variant.versionName
+            outputFileName = new File("QWR-StreamLink-gogle_${buildType}_${version}.apk")
+        }
+    }
+}
+
+// Copy daemon JAR into assets so the APK bundles it
+task copyDaemonJar(type: Copy) {
+    dependsOn ':daemon_gogle:buildDaemonDex'
+    from "${rootProject.projectDir}/daemon_gogle/build/outputs/daemon/qwr-daemon.jar"
+    into "${projectDir}/src/main/assets"
+}
+
+preBuild.dependsOn copyDaemonJar
+
+clean.doLast {
+    delete "${projectDir}/src/main/assets/qwr-daemon.jar"
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.activity:activity:1.9.3'
+}

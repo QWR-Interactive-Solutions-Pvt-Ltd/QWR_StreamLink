@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen padding -->
+    <dimen name="screen_padding">24dp</dimen>
+
+    <!-- Logo -->
+    <dimen name="logo_height">36dp</dimen>
+
+    <!-- Status text -->
+    <dimen name="status_text_size">14sp</dimen>
+
+    <!-- Empty state -->
+    <dimen name="empty_text_size">16sp</dimen>
+    <dimen name="progress_size">48dp</dimen>
+
+    <!-- Cards -->
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_radius">10dp</dimen>
+    <dimen name="card_name_size">15sp</dimen>
+    <dimen name="card_detail_size">12sp</dimen>
+    <dimen name="card_spacing">10dp</dimen>
+    <dimen name="card_headset_size">56dp</dimen>
+    <dimen name="preview_button_height">44dp</dimen>
+    <dimen name="preview_height">180dp</dimen>
+
+    <!-- Stream overlay -->
+    <dimen name="stream_status_size">14sp</dimen>
+    <dimen name="stream_margin">16dp</dimen>
+    <dimen name="close_button_size">32dp</dimen>
+    <dimen name="close_button_padding">8dp</dimen>
+
+    <!-- Quality bar -->
+    <dimen name="quality_button_text_size">16sp</dimen>
+    <dimen name="quality_bar_margin_bottom">24dp</dimen>
+
+    <!-- Grid columns -->
+    <integer name="device_grid_columns">1</integer>
+</resources>

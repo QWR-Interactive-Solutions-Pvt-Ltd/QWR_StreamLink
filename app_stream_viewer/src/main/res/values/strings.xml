@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">QWR Stream Viewer</string>
+    <string name="searching_for_headsets">Searching for VR headsets\u2026</string>
+    <string name="no_devices_found">No VR headsets found on the network</string>
+    <string name="devices_found">%d device(s) found</string>
+    <string name="refresh">Refresh</string>
+    <string name="close">Close</string>
+    <string name="connecting">Connecting\u2026</string>
+    <string name="waiting_for_stream">Waiting for stream\u2026</string>
+    <string name="stream_feed">Stream feed</string>
+    <string name="serial_label">SN: %s</string>
+    <string name="show_preview">Preview</string>
+    <string name="hide_preview">Hide preview</string>
+    <string name="quality_label">QUALITY</string>
+    <string name="quality_low">Low</string>
+    <string name="quality_medium">Med</string>
+    <string name="quality_high">High</string>
+    <string name="quality_max">Max</string>
+    <string name="fps_label">FPS</string>
+    <string name="fps_10">10</string>
+    <string name="fps_15">15</string>
+    <string name="fps_25">25</string>
+    <string name="fps_max">Max</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal manifest required by Android library module.
+     This daemon does NOT run as an Android app — it runs via app_process. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+</manifest>

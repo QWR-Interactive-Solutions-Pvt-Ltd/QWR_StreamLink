@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/streamContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <ImageView
+        android:id="@+id/streamImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/stream_feed" />
+
+    <!-- Top bar: status pill (left) and close button (right), always on the same row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_margin="@dimen/stream_margin"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Always-visible status pill -->
+        <LinearLayout
+            android:id="@+id/statusBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_stream_status_bar"
+            android:paddingStart="12dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <View
+                android:id="@+id/streamStatusDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/connecting"
+                android:textColor="#FFFFFF"
+                android:textSize="@dimen/stream_status_size" />
+
+        </LinearLayout>
+
+        <!-- Spacer pushes close button to the right -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:focusable="false" />
+
+        <!-- Toggleable close button -->
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="@dimen/close_button_size"
+            android:layout_height="@dimen/close_button_size"
+            android:background="@drawable/bg_close_button"
+            android:src="@drawable/ic_close"
+            android:scaleType="centerInside"
+            android:padding="@dimen/close_button_padding"
+            android:contentDescription="@string/close" />
+
+    </LinearLayout>
+
+    <!-- Toggleable quality selector — pill segmented control -->
+    <LinearLayout
+        android:id="@+id/qualityBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="@dimen/quality_bar_margin_bottom"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_stream_status_bar"
+        android:paddingStart="12dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/quality_label"
+            android:textColor="#77FFFFFF"
+            android:textSize="12sp"
+            android:letterSpacing="0.08"
+            android:paddingEnd="2dp" />
+
+        <!-- thin divider between label and options -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="12dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="2dp"
+            android:background="#44FFFFFF" />
+
+        <TextView
+            android:id="@+id/btnQualityLow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/quality_low"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+        <TextView
+            android:id="@+id/btnQualityMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/quality_medium"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+        <TextView
+            android:id="@+id/btnQualityHigh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/quality_high"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+        <TextView
+            android:id="@+id/btnQualityMax"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/quality_max"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+    </LinearLayout>
+
+    <!-- Toggleable FPS selector — only effective when daemon uses screenshot polling -->
+    <LinearLayout
+        android:id="@+id/fpsBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_stream_status_bar"
+        android:paddingStart="12dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fps_label"
+            android:textColor="#77FFFFFF"
+            android:textSize="12sp"
+            android:letterSpacing="0.08"
+            android:paddingEnd="2dp" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="12dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="2dp"
+            android:background="#44FFFFFF" />
+
+        <TextView
+            android:id="@+id/btnFps10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/fps_10"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+        <TextView
+            android:id="@+id/btnFps15"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/fps_15"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+        <TextView
+            android:id="@+id/btnFps25"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/fps_25"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+        <TextView
+            android:id="@+id/btnFpsMax"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/fps_max"
+            android:textColor="#AAFFFFFF"
+            android:textSize="@dimen/quality_button_text_size" />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 7"+ tablets -->
+    <dimen name="screen_padding">40dp</dimen>
+
+    <dimen name="logo_height">48dp</dimen>
+
+    <dimen name="status_text_size">16sp</dimen>
+    <dimen name="status_margin_bottom">24dp</dimen>
+
+    <dimen name="empty_text_size">18sp</dimen>
+    <dimen name="progress_size">64dp</dimen>
+
+    <dimen name="card_padding">20dp</dimen>
+    <dimen name="card_radius">12dp</dimen>
+    <dimen name="card_name_size">17sp</dimen>
+    <dimen name="card_detail_size">14sp</dimen>
+    <dimen name="card_spacing">12dp</dimen>
+    <dimen name="card_headset_size">64dp</dimen>
+    <dimen name="preview_button_height">48dp</dimen>
+    <dimen name="preview_height">200dp</dimen>
+
+    <dimen name="input_height">56dp</dimen>
+    <dimen name="input_text_size">16sp</dimen>
+    <dimen name="divider_text_size">14sp</dimen>
+    <dimen name="bottom_margin_top">24dp</dimen>
+
+    <dimen name="stream_status_size">16sp</dimen>
+    <dimen name="stream_status_padding">14dp</dimen>
+    <dimen name="stream_margin">24dp</dimen>
+    <dimen name="close_button_size">56dp</dimen>
+    <dimen name="close_button_padding">14dp</dimen>
+
+    <integer name="device_grid_columns">2</integer>
+</resources>

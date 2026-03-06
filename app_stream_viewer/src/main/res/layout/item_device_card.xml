@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="#111111"
+    app:cardCornerRadius="@dimen/card_radius"
+    app:cardElevation="0dp"
+    app:strokeColor="#222222"
+    app:strokeWidth="1dp"
+    app:rippleColor="#2A2A2A">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Top section: headset image + info + chevron -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/card_padding"
+            android:paddingEnd="@dimen/card_padding"
+            android:paddingTop="@dimen/card_padding"
+            android:paddingBottom="12dp">
+
+            <!-- Headset image — icon is set dynamically by HeadsetIconConfig -->
+            <ImageView
+                android:id="@+id/headsetIcon"
+                android:layout_width="@dimen/card_headset_size"
+                android:layout_height="@dimen/card_headset_size"
+                android:src="@drawable/ic_device_headset"
+                android:scaleType="fitCenter"
+                android:layout_marginEnd="@dimen/card_padding"
+                android:contentDescription="@null" />
+
+            <!-- Info column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Name with status dot -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:id="@+id/statusDot"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_status_idle" />
+
+                    <TextView
+                        android:id="@+id/deviceName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="#FFFFFF"
+                        android:textSize="@dimen/card_name_size"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        tools:text="QWR Headset Alpha" />
+
+                </LinearLayout>
+
+                <!-- Serial -->
+                <TextView
+                    android:id="@+id/deviceSerial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#777777"
+                    android:textSize="@dimen/card_detail_size"
+                    android:fontFamily="monospace"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginStart="16dp"
+                    android:maxLines="1"
+                    tools:text="SN: HMD-00A1F2" />
+
+                <!-- IP -->
+                <TextView
+                    android:id="@+id/deviceIp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#555555"
+                    android:textSize="@dimen/card_detail_size"
+                    android:fontFamily="monospace"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginStart="16dp"
+                    android:maxLines="1"
+                    tools:text="192.168.1.101" />
+
+            </LinearLayout>
+
+            <!-- Chevron — far right -->
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_chevron_right"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@null" />
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/card_padding"
+            android:layout_marginEnd="@dimen/card_padding"
+            android:background="#1E1E1E" />
+
+        <!-- Preview button — full width, big touch target -->
+        <TextView
+            android:id="@+id/btnPreview"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/preview_button_height"
+            android:text="@string/show_preview"
+            android:textColor="#888888"
+            android:textSize="@dimen/card_detail_size"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+        <!-- Preview thumbnail (hidden by default) -->
+        <FrameLayout
+            android:id="@+id/previewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/previewImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/preview_height"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:background="#0A0A0A"
+                android:contentDescription="@string/stream_feed" />
+
+            <ProgressBar
+                android:id="@+id/previewLoading"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:indeterminateTint="#555555" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

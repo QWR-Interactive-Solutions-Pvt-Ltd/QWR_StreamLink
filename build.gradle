@@ -1,0 +1,163 @@
+// Top-level build.gradle for QWR_StreamLink
+
+import org.gradle.api.tasks.Delete
+import org.gradle.api.JavaVersion
+
+ext {
+    versions = [
+            app_gogle: [
+                    versionCode: 1,
+                    versionName: '1.0.0'
+            ],
+            app_stream_viewer: [
+                    versionCode: 1,
+                    versionName: '1.0.0'
+            ],
+            base: [
+                    versionCode: 1,
+                    versionName: '1.0.0'
+            ]
+    ]
+}
+
+buildscript {
+    ext.kotlin_version = '2.2.0'
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.11.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+subprojects { project ->
+    afterEvaluate {
+        if (project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
+            android {
+                compileSdk 35
+
+                defaultConfig {
+                    minSdk 26
+                    targetSdk 35
+                    if (rootProject.ext.versions[project.name]) {
+                        versionCode rootProject.ext.versions[project.name].versionCode
+                        versionName rootProject.ext.versions[project.name].versionName
+                    }
+                }
+
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_21
+                    targetCompatibility JavaVersion.VERSION_21
+                }
+
+                ndkVersion '27.0.12099909'
+            }
+            if (project.plugins.hasPlugin('kotlin-android')) {
+                project.dependencies {
+                    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+                }
+            }
+        }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete layout.getBuildDirectory()
+}
+
+// Version increment tasks
+tasks.register('incrementAllVersions') {
+    description 'Increments versionCode and versionName (MAJOR, MINOR, or PATCH) for all modules.'
+    group 'Versioning'
+
+    doLast {
+        def incrementType = project.hasProperty('type') ? project.property('type').toUpperCase() : 'PATCH'
+
+        rootProject.ext.versions.each { module, config ->
+            def versionParts = config.versionName.split('\\.').collect { it.toInteger() }
+            def major = versionParts[0]
+            def minor = versionParts[1]
+            def patch = versionParts[2]
+
+            switch (incrementType) {
+                case 'MAJOR': major++; minor = 0; patch = 0; break
+                case 'MINOR': minor++; patch = 0; break
+                case 'PATCH': patch++; break
+                default: throw new GradleException("Invalid increment type: ${incrementType}. Use MAJOR, MINOR, or PATCH.")
+            }
+
+            config.versionCode++
+            config.versionName = "${major}.${minor}.${patch}"
+        }
+
+        updateVersionInFile()
+    }
+}
+
+['app_gogle', 'app_stream_viewer', 'base'].each { module ->
+    tasks.register("increment${module.capitalize()}Version") {
+        description "Increments versionCode and versionName for ${module}."
+        group 'Versioning'
+
+        doLast {
+            def incrementType = project.hasProperty('type') ? project.property('type').toUpperCase() : 'PATCH'
+            def config = rootProject.ext.versions[module]
+            if (!config) throw new GradleException("No versioning defined for module ${module}")
+
+            def versionParts = config.versionName.split('\\.').collect { it.toInteger() }
+            def major = versionParts[0]
+            def minor = versionParts[1]
+            def patch = versionParts[2]
+
+            switch (incrementType) {
+                case 'MAJOR': major++; minor = 0; patch = 0; break
+                case 'MINOR': minor++; patch = 0; break
+                case 'PATCH': patch++; break
+                default: throw new GradleException("Invalid increment type: ${incrementType}. Use MAJOR, MINOR, or PATCH.")
+            }
+
+            config.versionCode++
+            config.versionName = "${major}.${minor}.${patch}"
+            updateVersionInFile()
+        }
+    }
+}
+
+def updateVersionInFile() {
+    def file = new File('build.gradle')
+    def lines = file.readLines()
+    def newLines = []
+    def inVersionsBlock = false
+    def indent = '    '
+
+    lines.each { line ->
+        if (line.trim().startsWith('versions = [')) {
+            inVersionsBlock = true
+            newLines << line
+        } else if (inVersionsBlock && line.trim() == ']') {
+            rootProject.ext.versions.each { module, config ->
+                newLines << "${indent}${indent}${module}: ["
+                newLines << "${indent}${indent}${indent}versionCode: ${config.versionCode},"
+                newLines << "${indent}${indent}${indent}versionName: '${config.versionName}'"
+                newLines << "${indent}${indent}],"
+            }
+            newLines << line
+            inVersionsBlock = false
+        } else if (!inVersionsBlock || !line.trim().startsWith('app_') && !line.trim().startsWith('base:')) {
+            newLines << line
+        }
+    }
+
+    file.write(newLines.join('\n') + '\n')
+}

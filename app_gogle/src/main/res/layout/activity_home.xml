@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF0F172A"
+    tools:context="com.qwr.gogle.view.activity.SplashScreenActivity">
+
+    <ScrollView
+        android:layout_width="380dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="@drawable/bg_card"
+        android:paddingHorizontal="28dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="28dp">
+
+        <!-- App title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="QWR StreamLink"
+            android:textSize="36sp"
+            android:textColor="#FFF8FAFC"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="28dp" />
+
+        <!-- Device info section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_section"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DEVICE INFO"
+                android:textSize="11sp"
+                android:textColor="#FF94A3B8"
+                android:letterSpacing="0.12"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="72dp"
+                    android:layout_height="wrap_content"
+                    android:text="Name"
+                    android:textSize="14sp"
+                    android:textColor="#FF64748B" />
+
+                <TextView
+                    android:id="@+id/deviceName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="—"
+                    android:textSize="14sp"
+                    android:textColor="#FFE2E8F0"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="72dp"
+                    android:layout_height="wrap_content"
+                    android:text="Serial"
+                    android:textSize="14sp"
+                    android:textColor="#FF64748B" />
+
+                <TextView
+                    android:id="@+id/deviceSerial"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="—"
+                    android:textSize="14sp"
+                    android:textColor="#FFE2E8F0"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="72dp"
+                    android:layout_height="wrap_content"
+                    android:text="IP"
+                    android:textSize="14sp"
+                    android:textColor="#FF64748B" />
+
+                <TextView
+                    android:id="@+id/deviceIp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="—"
+                    android:textSize="14sp"
+                    android:textColor="#FFE2E8F0"
+                    android:singleLine="true" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#FF334155"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Status + info block -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="28dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/statusDot"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/status_dot"
+                    android:layout_marginEnd="10dp" />
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Checking…"
+                    android:textSize="18sp"
+                    android:textColor="#FFE2E8F0" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/infoText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#FF94A3B8"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Start / Stop toggle button -->
+        <Button
+            android:id="@+id/toggleButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Start Streaming"
+            android:textSize="17sp"
+            android:textColor="#FFFFFFFF"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/bg_button_start"
+            android:stateListAnimator="@null"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Quit button -->
+        <Button
+            android:id="@+id/quitButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Quit App"
+            android:textSize="17sp"
+            android:textColor="#FFFFFFFF"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/bg_button_quit"
+            android:stateListAnimator="@null" />
+
+    </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

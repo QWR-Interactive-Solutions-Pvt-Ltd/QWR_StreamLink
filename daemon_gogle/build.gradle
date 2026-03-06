@@ -1,0 +1,94 @@
+// build.gradle for daemon_gogle module
+// Purpose: Standalone daemon that runs via `adb shell app_process` for screen capture
+// using SurfaceControl hidden APIs. Bypasses SSNWT's app lifecycle kill mechanism.
+// This is an Android library module — we only need the compiled classes (DEX),
+// not an installable APK.
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.qwr.daemon'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 26
+        targetSdk 35
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+// No dependencies — daemon is fully standalone.
+// All Android APIs (Bitmap, ImageReader, SurfaceControl) come from the framework.
+dependencies {
+}
+
+// Task to package compiled classes as a standalone DEX for app_process
+// Usage: ./gradlew :daemon_gogle:buildDaemonDex
+tasks.register('buildDaemonDex') {
+    description 'Packages daemon classes into a standalone DEX file for app_process deployment'
+    group 'build'
+
+    dependsOn 'assembleRelease'
+
+    doLast {
+        def aarFile = file("build/outputs/aar/daemon_gogle-release.aar")
+        def workDir = file("build/daemon_dex_work")
+        def outputDir = file("build/outputs/daemon")
+        def outputDex = file("build/outputs/daemon/qwr-daemon.jar")
+
+        workDir.deleteDir()
+        workDir.mkdirs()
+        outputDir.mkdirs()
+
+        // Extract classes.jar from AAR
+        copy {
+            from zipTree(aarFile)
+            into workDir
+            include 'classes.jar'
+        }
+
+        // The classes.jar contains compiled .class files.
+        // For app_process, we need a JAR with classes.dex inside.
+        // Use d8 to convert .class files to DEX format.
+        def classesJar = file("${workDir}/classes.jar")
+        def sdkDir = android.sdkDirectory
+        def buildToolsVersion = android.buildToolsVersion
+        def d8Path = "${sdkDir}/build-tools/${buildToolsVersion}/d8"
+
+        // On Windows, use d8.bat
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            d8Path = "${sdkDir}/build-tools/${buildToolsVersion}/d8.bat"
+        }
+
+        // Include android.jar as library classpath so d8 can resolve framework types
+        def androidJar = "${sdkDir}/platforms/android-35/android.jar"
+
+        exec {
+            commandLine d8Path, '--lib', androidJar, '--output', outputDir.absolutePath, classesJar.absolutePath
+        }
+
+        // d8 outputs classes.dex in outputDir — wrap it in a JAR for app_process
+        ant.jar(destfile: outputDex.absolutePath) {
+            fileset(dir: outputDir.absolutePath) {
+                include(name: 'classes.dex')
+            }
+        }
+
+        // Clean up intermediate dex
+        file("${outputDir}/classes.dex").delete()
+
+        println "Daemon DEX built: ${outputDex.absolutePath}"
+        println "Deploy with: adb push ${outputDex.absolutePath} /data/local/tmp/qwr-daemon.jar"
+        println "Run with: adb shell CLASSPATH=/data/local/tmp/qwr-daemon.jar app_process / com.qwr.daemon.Main"
+    }
+}
