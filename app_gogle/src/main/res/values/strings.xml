@@ -2,7 +2,4 @@
 <resources>
     <string name="app_gogle_name">QWR Streamer</string>
     <string name="app_gogle_name_prd">QWR Streamer</string>
-    <string name="app_gogle_name_dev">QWR Streamer-DEV</string>
-    <string name="app_gogle_name_preprod">QWR Streamer-PREPROD</string>
-    <string name="app_gogle_name_test">QWR Streamer-TEST</string>
 </resources>

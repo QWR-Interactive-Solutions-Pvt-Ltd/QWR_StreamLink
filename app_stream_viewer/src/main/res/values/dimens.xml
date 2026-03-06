@@ -8,6 +8,7 @@
 
     <!-- Status text -->
     <dimen name="status_text_size">14sp</dimen>
+    <dimen name="status_margin_bottom">16dp</dimen>
 
     <!-- Empty state -->
     <dimen name="empty_text_size">16sp</dimen>
@@ -23,8 +24,15 @@
     <dimen name="preview_button_height">44dp</dimen>
     <dimen name="preview_height">180dp</dimen>
 
+    <!-- Input fields -->
+    <dimen name="input_height">48dp</dimen>
+    <dimen name="input_text_size">14sp</dimen>
+    <dimen name="divider_text_size">12sp</dimen>
+    <dimen name="bottom_margin_top">16dp</dimen>
+
     <!-- Stream overlay -->
     <dimen name="stream_status_size">14sp</dimen>
+    <dimen name="stream_status_padding">10dp</dimen>
     <dimen name="stream_margin">16dp</dimen>
     <dimen name="close_button_size">32dp</dimen>
     <dimen name="close_button_padding">8dp</dimen>
