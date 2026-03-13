@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.qwr.gogle.QwrGogleApplication;
 import com.qwr.gogle.R;
 import com.qwr.gogle.util.DaemonController;
 
@@ -40,6 +41,16 @@ public class ScreenCaptureService extends Service {
         // onStartCommand call (e.g. QwrGogleApplication auto-start racing with a
         // StreamCommandReceiver broadcast) sees isRunning=true and returns early.
         // If the actual daemon launch fails, isRunning is reset to false below.
+        // If user explicitly stopped streaming, don't relaunch (START_STICKY restart)
+        boolean shouldRun = getSharedPreferences("daemon_prefs", MODE_PRIVATE)
+                .getBoolean("daemon_should_run", false);
+        if (!shouldRun) {
+            Log.i(TAG, "daemon_should_run is false — not relaunching (likely START_STICKY restart after stop)");
+            isRunning = false;
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
         boolean wasRunning = isRunning;
         isRunning = true;
         startForeground(NOTIFICATION_ID, buildNotification());
