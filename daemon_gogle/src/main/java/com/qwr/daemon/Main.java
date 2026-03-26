@@ -137,9 +137,16 @@ public class Main {
 
                 while (true) {
                     Socket client = serverSocket.accept();
+                    client.setSoTimeout(3000);
                     BufferedReader reader = new BufferedReader(
                             new InputStreamReader(client.getInputStream()));
-                    String command = reader.readLine();
+                    String command;
+                    try {
+                        command = reader.readLine();
+                    } catch (java.net.SocketTimeoutException e) {
+                        client.close();
+                        continue;
+                    }
 
                     if ("mode".equals(command)) {
                         String mode = screenCapture.getMode();
