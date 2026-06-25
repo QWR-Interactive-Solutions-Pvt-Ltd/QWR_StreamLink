@@ -1,4 +1,4 @@
-package com.qwr.gogle.receiver;
+package com.streamer.core.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,9 +6,10 @@ import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 
-import com.qwr.gogle.QwrGogleApplication;
-import com.qwr.gogle.service.ScreenCaptureService;
-import com.qwr.gogle.util.DaemonController;
+import com.streamer.core.BuildConfig;
+import com.streamer.core.StreamerApplication;
+import com.streamer.core.service.ScreenCaptureService;
+import com.streamer.core.util.DaemonController;
 
 /**
  * Receives start/stop streaming commands from external apps (Unity, Unreal, etc).
@@ -16,21 +17,27 @@ import com.qwr.gogle.util.DaemonController;
  * IMPORTANT: Must use explicit broadcast (with component name) so Android delivers
  * it even when the app is in stopped state (after forceStopPackage).
  *
+ * Action names depend on branding.gradle (intentActionPrefix). The class name
+ * com.streamer.core.receiver.StreamCommandReceiver is the stable framework contract
+ * and does NOT change per brand.
+ *
  * Usage from Unity (C#):
  *   var intent = new AndroidJavaObject("android.content.Intent");
- *   intent.Call&lt;AndroidJavaObject&gt;("setAction", "com.qwr.gogle.START_STREAM");
- *   intent.Call&lt;AndroidJavaObject&gt;("setClassName", "com.qwr.gogle", "com.qwr.gogle.receiver.StreamCommandReceiver");
+ *   intent.Call&lt;AndroidJavaObject&gt;("setAction", "&lt;intentActionPrefix&gt;.START_STREAM");
+ *   intent.Call&lt;AndroidJavaObject&gt;("setClassName", "&lt;applicationId&gt;",
+ *       "com.streamer.core.receiver.StreamCommandReceiver");
  *   activity.Call("sendBroadcast", intent);
  *
  * Usage from ADB:
- *   adb shell am broadcast -a com.qwr.gogle.START_STREAM -n com.qwr.gogle/.receiver.StreamCommandReceiver
- *   adb shell am broadcast -a com.qwr.gogle.STOP_STREAM -n com.qwr.gogle/.receiver.StreamCommandReceiver
+ *   adb shell am broadcast -a &lt;intentActionPrefix&gt;.START_STREAM -n &lt;applicationId&gt;/com.streamer.core.receiver.StreamCommandReceiver
+ *   adb shell am broadcast -a &lt;intentActionPrefix&gt;.STOP_STREAM  -n &lt;applicationId&gt;/com.streamer.core.receiver.StreamCommandReceiver
  */
 public class StreamCommandReceiver extends BroadcastReceiver {
 
     private static final String TAG = "StreamCommandReceiver";
-    public static final String ACTION_START = "com.qwr.gogle.START_STREAM";
-    public static final String ACTION_STOP = "com.qwr.gogle.STOP_STREAM";
+    // Intent action names are brand-configurable via branding.gradle (intentActionPrefix).
+    public static final String ACTION_START = BuildConfig.INTENT_ACTION_START;
+    public static final String ACTION_STOP = BuildConfig.INTENT_ACTION_STOP;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -55,7 +62,7 @@ public class StreamCommandReceiver extends BroadcastReceiver {
             return;
         }
 
-        QwrGogleApplication.setDaemonShouldRun(context, true);
+        StreamerApplication.setDaemonShouldRun(context, true);
 
         Intent serviceIntent = new Intent(context, ScreenCaptureService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -67,7 +74,7 @@ public class StreamCommandReceiver extends BroadcastReceiver {
     }
 
     private void stopStream(Context context) {
-        QwrGogleApplication.setDaemonShouldRun(context, false);
+        StreamerApplication.setDaemonShouldRun(context, false);
 
         new Thread(() -> {
             DaemonController.stopDaemon();

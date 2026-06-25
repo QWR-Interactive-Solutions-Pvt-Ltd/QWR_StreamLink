@@ -5,7 +5,7 @@ Headset-side system app for QWR StreamLink. Manages the streaming daemon lifecyc
 ## How it works
 
 ### 1. App startup
-`QwrGogleApplication` runs first. It reads the `daemon_should_run` SharedPreference to decide what to do:
+`StreamerApplication` runs first. It reads the `daemon_should_run` SharedPreference to decide what to do:
 - If the daemon is already alive (TCP probe on port 6779 succeeds) → sync the `isRunning` flag
 - If it should be running but isn't (crash, reboot, OS kill) → reinstall the JAR if needed and relaunch the daemon automatically
 
@@ -52,16 +52,16 @@ All daemon interactions go through this static utility class:
 
 | Action | Effect |
 |--------|--------|
-| `com.qwr.gogle.START_STREAM` | Saves intent, starts `ScreenCaptureService` if not already running |
-| `com.qwr.gogle.STOP_STREAM` | Saves intent, stops daemon and service |
+| `<intentActionPrefix>.START_STREAM` | Saves intent, starts `ScreenCaptureService` if not already running |
+| `<intentActionPrefix>.STOP_STREAM` | Saves intent, stops daemon and service |
 
-Must be sent as an **explicit broadcast** (with component name) so Android delivers it when the app is in stopped state. See the main README for Unity, Unreal, and ADB examples.
+Action prefix is brand-configurable in `branding.gradle` (defaults to `com.streamer.core`). See `BRANDING.md` for whitelabeling. Must be sent as an **explicit broadcast** (with component name `com.streamer.core.receiver.StreamCommandReceiver`) so Android delivers it when the app is in stopped state.
 
 ## File structure
 
 | File | Responsibility |
 |------|---------------|
-| `QwrGogleApplication.java` | App init — auto-relaunch daemon on process restart |
+| `StreamerApplication.java` | App init — auto-relaunch daemon on process restart |
 | `view/activity/SplashScreenActivity.java` | Controller UI — Start/Stop/Quit, device info, status polling |
 | `service/ScreenCaptureService.java` | Foreground service — daemon install, launch, persistent notification |
 | `util/DaemonController.java` | Static utility — JAR install, daemon start/stop/probe, cgroup escape |

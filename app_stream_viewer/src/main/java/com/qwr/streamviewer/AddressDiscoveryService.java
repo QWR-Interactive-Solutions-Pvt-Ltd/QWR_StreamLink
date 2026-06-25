@@ -14,8 +14,9 @@ import java.util.Set;
 /**
  * Discovers headsets on the local network.
  *
- * Listens for UDP broadcast packets from the daemon on port 8505.
- * The daemon broadcasts: "QWR_STREAMLINK|IP|PORT|deviceName|serial"
+ * Listens for UDP broadcast packets on port 8505.
+ * Expected payload: "QWR_VR|IP|PORT|deviceName|serial"
+ * (Daemon's own broadcast is disabled — discovery is owned by the partner Unity VR app.)
  *
  * HOTSPOT mode is not supported — passes through without scanning.
  */
@@ -23,7 +24,7 @@ public class AddressDiscoveryService {
 
     private static final String TAG = "AddressDiscoveryService";
 
-    private static final String UDP_BROADCAST_PREFIX = "QWR_STREAMLINK";
+    private static final String UDP_BROADCAST_PREFIX = "QWR_VR";
     private static final int UDP_LISTEN_TIMEOUT_MS = 4000;
     private static final int UDP_BUFFER_SIZE = 1024;
 

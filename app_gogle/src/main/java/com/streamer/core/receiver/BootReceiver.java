@@ -1,4 +1,4 @@
-package com.qwr.gogle.receiver;
+package com.streamer.core.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 
-import com.qwr.gogle.service.ScreenCaptureService;
+import com.streamer.core.service.ScreenCaptureService;
 
 /**
  * Starts the streaming service on boot if the user had streaming enabled

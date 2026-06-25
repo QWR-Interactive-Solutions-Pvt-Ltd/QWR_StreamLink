@@ -35,14 +35,26 @@ public class ScreenCapture {
     /** Minimum frames expected during eval period to keep virtual display. */
     private static final int VD_MIN_FRAMES = 8;
 
-    private final int displayWidth;
-    private final int displayHeight;
+    /** Region of the display to capture (full SBS, or one eye when cropped). */
+    private final Rect sourceRect;
     private final int captureWidth;
     private final int captureHeight;
     private volatile int jpegQuality;
     private volatile int delayMs;
 
     private volatile boolean running = false;
+
+    /** True while a stream client is connected. When false, capture is idle-gated. */
+    private volatile boolean consumerAttached = false;
+    /** Timestamp of the last frame actually encoded (for the VD-mode FPS cap). */
+    private long lastFrameTimeMs = 0;
+    /**
+     * Raw ImageReader callbacks received, counted BEFORE the idle-gate/FPS-cap.
+     * The compositor mirrors to the virtual display regardless of any stream
+     * client, so this — not the encoded frameCount — measures whether the
+     * virtual-display path is viable on this headset.
+     */
+    private volatile long vdCallbackCount = 0;
 
     // JPEG frame queue consumed by StreamServer
     private final Queue<byte[]> frameQueue = new LinkedList<>();
@@ -69,11 +81,10 @@ public class ScreenCapture {
     private enum CaptureMode { VIRTUAL_DISPLAY, SCREENSHOT_POLLING }
     private volatile CaptureMode mode;
 
-    public ScreenCapture(int displayWidth, int displayHeight,
+    public ScreenCapture(Rect sourceRect,
                          int captureWidth, int captureHeight,
                          int jpegQuality, int delayMs) {
-        this.displayWidth = displayWidth;
-        this.displayHeight = displayHeight;
+        this.sourceRect = sourceRect;
         this.captureWidth = captureWidth;
         this.captureHeight = captureHeight;
         this.jpegQuality = jpegQuality;
@@ -138,7 +149,6 @@ public class ScreenCapture {
         vdDisplayToken = (IBinder) createDisplay.invoke(null, "qwr-capture", false);
         Main.println("ScreenCapture: SurfaceControl display created, token=" + vdDisplayToken);
 
-        Rect sourceRect = new Rect(0, 0, displayWidth, displayHeight);
         Rect destRect = new Rect(0, 0, captureWidth, captureHeight);
 
         openTransaction.invoke(null);
@@ -160,6 +170,23 @@ public class ScreenCapture {
         try {
             image = reader.acquireLatestImage();
             if (image == null) return;
+
+            // Count the raw callback BEFORE gating, so VD viability is measured
+            // independently of whether a client is connected or the FPS cap.
+            vdCallbackCount++;
+
+            // Idle gate + FPS cap. The VD callback fires at the compositor rate
+            // (~50-66 Hz observed on DPVR P2), so without this we read back and
+            // software-JPEG-encode 2-4x more frames than needed. Skip the work
+            // entirely when no client is viewing, or when fewer than delayMs ms
+            // have elapsed since the last encoded frame.
+            long now = System.currentTimeMillis();
+            if (!consumerAttached || now - lastFrameTimeMs < delayMs) {
+                image.close();
+                image = null;
+                return;
+            }
+            lastFrameTimeMs = now;
 
             Image.Plane[] planes = image.getPlanes();
             ByteBuffer buffer = planes[0].getBuffer();
@@ -207,7 +234,7 @@ public class ScreenCapture {
             }
 
             frameCount++;
-            long now = System.currentTimeMillis();
+            now = System.currentTimeMillis();
             if (frameCount == 1 || now - lastLogTime > 5000) {
                 Main.println("ScreenCapture [VD]: frame #" + frameCount
                         + " JPEG=" + jpegData.length + "B queue=" + frameQueue.size());
@@ -232,8 +259,10 @@ public class ScreenCapture {
         }
         if (!running || mode != CaptureMode.VIRTUAL_DISPLAY) return;
 
-        long frames = frameCount;
-        Main.println("ScreenCapture: VD evaluation — " + frames + " frames in "
+        // Use raw compositor callbacks, NOT encoded frameCount — the latter is
+        // suppressed by the idle-gate/FPS-cap and would force a false fallback.
+        long frames = vdCallbackCount;
+        Main.println("ScreenCapture: VD evaluation — " + frames + " raw callbacks in "
                 + VD_EVAL_PERIOD_MS + "ms (min=" + VD_MIN_FRAMES + ")");
 
         if (frames < VD_MIN_FRAMES) {
@@ -287,6 +316,16 @@ public class ScreenCapture {
 
     private void screenshotCaptureLoop() {
         while (running) {
+            // Idle gate: don't poll/capture when no client is viewing.
+            if (!consumerAttached) {
+                try {
+                    Thread.sleep(Math.max(delayMs, 100));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                continue;
+            }
             long start = System.currentTimeMillis();
             try {
                 Bitmap frame = captureScreenshot();
@@ -479,7 +518,7 @@ public class ScreenCapture {
         if (screenshotMethod.getName().equals("screenshotToBuffer")) {
             return invokeScreenshotToBuffer();
         }
-        Rect src = new Rect(0, 0, displayWidth, displayHeight);
+        Rect src = sourceRect;
         Class<?>[] params = screenshotMethod.getParameterTypes();
         int paramCount = params.length;
 
@@ -502,7 +541,7 @@ public class ScreenCapture {
     }
 
     private Bitmap invokeScreenshotToBuffer() throws Exception {
-        Rect src = new Rect(0, 0, displayWidth, displayHeight);
+        Rect src = sourceRect;
         Class<?>[] params = screenshotMethod.getParameterTypes();
         int paramCount = params.length;
         Object sgb;
@@ -541,6 +580,19 @@ public class ScreenCapture {
 
     public void setJpegQuality(int quality) {
         this.jpegQuality = quality;
+    }
+
+    /**
+     * Marks whether a stream client is currently connected. When no client is
+     * attached the capture pipeline idles (no readback, no encode) — see the
+     * gates in {@link #processImage} and {@link #screenshotCaptureLoop}.
+     */
+    public void setConsumerAttached(boolean attached) {
+        if (this.consumerAttached != attached) {
+            Main.println("ScreenCapture: consumerAttached=" + attached
+                    + (attached ? " (resuming capture)" : " (idling capture)"));
+        }
+        this.consumerAttached = attached;
     }
 
     public void setDelayMs(int delayMs) {

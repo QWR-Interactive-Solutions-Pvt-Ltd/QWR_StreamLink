@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew :app_gogle:assembleDebug_develop:*)",
+      "Bash(./gradlew :app_stream_viewer:assembleDebug:*)",
+      "Bash(./gradlew :daemon_gogle:buildDaemonDex:*)",
+      "Bash(adb logcat:*)",
+      "Bash(adb shell:*)",
+      "Bash(adb devices:*)",
+      "Bash(mkdir:*)",
+      "Bash(./gradlew.bat :daemon_gogle:buildDaemonDex:*)",
+      "Bash(./gradlew.bat :app_gogle:assembleDebug_develop:*)",
+      "Bash(adb push:*)",
+      "WebSearch",
+      "Bash(./gradlew :app_gogle:assembleDebug_develop_system:*)",
+      "Bash(tar:*)",
+      "Bash(unzip:*)",
+      "Bash(adb:*)",
+      "Bash(./gradlew :daemon_gogle:clean:*)"
+    ]
+  }
+}

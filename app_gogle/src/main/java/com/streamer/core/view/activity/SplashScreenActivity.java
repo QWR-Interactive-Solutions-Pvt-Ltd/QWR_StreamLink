@@ -1,4 +1,4 @@
-package com.qwr.gogle.view.activity;
+package com.streamer.core.view.activity;
 
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
@@ -18,10 +18,10 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 
-import com.qwr.gogle.QwrGogleApplication;
-import com.qwr.gogle.R;
-import com.qwr.gogle.service.ScreenCaptureService;
-import com.qwr.gogle.util.DaemonController;
+import com.streamer.core.R;
+import com.streamer.core.StreamerApplication;
+import com.streamer.core.service.ScreenCaptureService;
+import com.streamer.core.util.DaemonController;
 
 /**
  * Controller UI for QWR streaming.
@@ -195,7 +195,7 @@ public class SplashScreenActivity extends AppCompatActivity {
                 Log.i(TAG, "Stopping daemon");
                 runOnUiThread(() -> statusText.setText("Stopping\u2026"));
 
-                QwrGogleApplication.setDaemonShouldRun(this, false);
+                StreamerApplication.setDaemonShouldRun(this, false);
                 DaemonController.stopDaemon();
                 ScreenCaptureService.isRunning = false;
 
@@ -211,7 +211,7 @@ public class SplashScreenActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     statusText.setText("Starting\u2026");
 
-                    QwrGogleApplication.setDaemonShouldRun(this, true);
+                    StreamerApplication.setDaemonShouldRun(this, true);
                     Intent serviceIntent = new Intent(this, ScreenCaptureService.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         startForegroundService(serviceIntent);

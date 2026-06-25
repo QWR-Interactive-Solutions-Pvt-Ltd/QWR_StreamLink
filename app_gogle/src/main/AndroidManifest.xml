@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:name=".QwrGogleApplication"
+        android:name=".StreamerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_gogle_name"
@@ -48,8 +48,8 @@
             android:name=".receiver.StreamCommandReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.qwr.gogle.START_STREAM" />
-                <action android:name="com.qwr.gogle.STOP_STREAM" />
+                <action android:name="${intentActionStart}" />
+                <action android:name="${intentActionStop}" />
             </intent-filter>
         </receiver>
 
