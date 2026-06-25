@@ -1,4 +1,4 @@
-package com.qwr.gogle;
+package com.streamer.core;
 
 import android.app.Application;
 import android.content.Intent;
@@ -6,12 +6,12 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 
-import com.qwr.gogle.service.ScreenCaptureService;
-import com.qwr.gogle.util.DaemonController;
+import com.streamer.core.service.ScreenCaptureService;
+import com.streamer.core.util.DaemonController;
 
-public class QwrGogleApplication extends Application {
+public class StreamerApplication extends Application {
 
-    private static final String TAG = "QwrGogleApplication";
+    private static final String TAG = "StreamerApplication";
     private static final String PREFS_NAME = "daemon_prefs";
     private static final String KEY_DAEMON_SHOULD_RUN = "daemon_should_run";
 
@@ -30,8 +30,8 @@ public class QwrGogleApplication extends Application {
                 // Daemon was killed but user wanted it running.
                 // App process was restarted (boot, intent, or user) — relaunch the daemon.
                 Log.i(TAG, "Daemon should be running but is dead — relaunching");
-                if (!DaemonController.isJarInstalled(QwrGogleApplication.this)) {
-                    DaemonController.installDaemonJar(QwrGogleApplication.this);
+                if (!DaemonController.isJarInstalled(StreamerApplication.this)) {
+                    DaemonController.installDaemonJar(StreamerApplication.this);
                 }
                 if (DaemonController.startDaemon()) {
                     ScreenCaptureService.isRunning = true;

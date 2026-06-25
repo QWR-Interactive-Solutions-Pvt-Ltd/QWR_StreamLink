@@ -35,10 +35,15 @@ public class DisplayInfo {
             wm.getClass().getMethod("getBaseDisplaySize", int.class, Point.class)
                     .invoke(wm, displayId, size);
 
-            // Check for rotation and swap if needed
+            // The VR headset panel is always physically landscape. WindowManager's
+            // rotation on these headsets is reported intermittently (the compositor
+            // does not actually rotate the layer-stack content), so swapping on it
+            // makes the capture portrait — a "sometimes vertical" feed — depending on
+            // the launcher/sensor state at the instant the daemon happens to start.
+            // Read rotation for logging only, and normalize to the panel's true
+            // landscape orientation so every launch produces the same orientation.
             int rotation = getRotation(getService, wm, displayId);
-            if (rotation == 1 || rotation == 3) {
-                // Landscape rotation — swap x and y
+            if (size.y > size.x) {
                 int tmp = size.x;
                 size.x = size.y;
                 size.y = tmp;

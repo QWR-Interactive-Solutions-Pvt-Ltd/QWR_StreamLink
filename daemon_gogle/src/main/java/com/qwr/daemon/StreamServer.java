@@ -56,7 +56,8 @@ StreamServer {
         running = true;
         new Thread(this::streamLoop, "StreamThread").start();
         new Thread(this::discoveryLoop, "DiscoveryThread").start();
-        new Thread(this::udpBroadcastLoop, "UdpBroadcastThread").start();
+        // UDP broadcast disabled — discovery handled by external app
+        // new Thread(this::udpBroadcastLoop, "UdpBroadcastThread").start();
         Main.println("StreamServer: started on port=" + streamPort + " discovery=" + discoveryPort
                 + " udp_broadcast_interval=" + UDP_BROADCAST_INTERVAL_MS + "ms");
     }
@@ -74,6 +75,9 @@ StreamServer {
                 Socket client = streamServerSocket.accept();
                 client.setSoTimeout(SOCKET_TIMEOUT_MS);
                 Main.println("StreamServer: client connected from " + client.getRemoteSocketAddress());
+
+                // Resume capture only while a client is actually viewing.
+                screenCapture.setConsumerAttached(true);
 
                 try {
                     DataOutputStream out = new DataOutputStream(client.getOutputStream());
@@ -104,6 +108,8 @@ StreamServer {
                 } catch (IOException e) {
                     Main.println("StreamServer: client write error — " + e.getMessage());
                 } finally {
+                    // No client viewing → idle the capture pipeline.
+                    screenCapture.setConsumerAttached(false);
                     try {
                         client.close();
                     } catch (IOException ignored) {

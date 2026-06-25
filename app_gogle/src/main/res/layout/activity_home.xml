@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FF0F172A"
-    tools:context="com.qwr.gogle.view.activity.SplashScreenActivity">
+    tools:context="com.streamer.core.view.activity.SplashScreenActivity">
 
     <ScrollView
         android:layout_width="380dp"

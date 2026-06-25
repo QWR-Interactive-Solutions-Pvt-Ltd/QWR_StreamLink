@@ -1,6 +1,7 @@
 package com.qwr.daemon;
 
 import android.graphics.Point;
+import android.graphics.Rect;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
@@ -26,7 +27,11 @@ public class Main {
     private static final int DEFAULT_PORT = 6776;
     private static final int DEFAULT_DISCOVERY_PORT = 8505;
     private static final int DEFAULT_CONTROL_PORT = 6779;
-    private static final int DEFAULT_DELAY_MS = 33; // ~30 FPS — balanced for prolonged use alongside VR apps
+    // ~15 FPS default. Plenty for monitoring, and a safe floor on CPU-constrained
+    // headsets (e.g. 2-big-core SoCs) even if no fps= arg is passed. The VD-mode
+    // cap honors this, so a no-arg launch never runs uncapped. Brands that want
+    // higher (e.g. ~60 FPS on WYWK firmware) override via the fps=/delay= arg.
+    private static final int DEFAULT_DELAY_MS = 67; // ~15 FPS
     private static final String PID_FILE = "/data/local/tmp/qwr-daemon.pid";
 
     public static void main(String[] args) {
@@ -38,6 +43,7 @@ public class Main {
         int port = DEFAULT_PORT;
         int discoveryPort = DEFAULT_DISCOVERY_PORT;
         int delayMs = DEFAULT_DELAY_MS;
+        String eye = "both"; // both | left | right — crops to one SBS eye to halve work
         String deviceName = getDeviceModel();
 
         for (String arg : args) {
@@ -61,6 +67,14 @@ public class Main {
                 case "delay":
                     delayMs = Integer.parseInt(val);
                     break;
+                case "fps":
+                    // Convenience alias for delay. fps caps both VD and SS modes.
+                    int fps = Integer.parseInt(val);
+                    if (fps > 0) delayMs = Math.max(1, Math.round(1000f / fps));
+                    break;
+                case "eye":
+                    eye = val.toLowerCase();
+                    break;
                 case "name":
                     deviceName = val;
                     break;
@@ -68,20 +82,35 @@ public class Main {
         }
 
         println("Config: quality=" + quality + " resize=" + resizePercent + "% port=" + port
-                + " delay=" + delayMs + "ms name=" + deviceName);
+                + " delay=" + delayMs + "ms (~" + (1000 / Math.max(1, delayMs)) + " FPS) eye=" + eye
+                + " name=" + deviceName);
 
         // Get display dimensions
         Point displaySize = DisplayInfo.getDisplaySize(0);
         println("Display size: " + displaySize.x + "x" + displaySize.y);
 
-        // Calculate capture dimensions (apply resize percent)
-        int captureWidth = Math.round(displaySize.x * (resizePercent / 100f));
+        // Build the source capture region. For SBS stereo displays, "left"/"right"
+        // crops to one eye (half the width) — halving readback, encode and bandwidth.
+        int srcX = 0;
+        int srcWidth = displaySize.x;
+        if ("left".equals(eye)) {
+            srcWidth = displaySize.x / 2;
+            srcX = 0;
+        } else if ("right".equals(eye)) {
+            srcWidth = displaySize.x / 2;
+            srcX = displaySize.x / 2;
+        }
+        Rect sourceRect = new Rect(srcX, 0, srcX + srcWidth, displaySize.y);
+        println("Source region: " + sourceRect);
+
+        // Calculate capture dimensions (apply resize percent to the cropped source)
+        int captureWidth = Math.round(srcWidth * (resizePercent / 100f));
         int captureHeight = Math.round(displaySize.y * (resizePercent / 100f));
         println("Capture size: " + captureWidth + "x" + captureHeight);
 
         // Create screen capture pipeline
         ScreenCapture screenCapture = new ScreenCapture(
-                displaySize.x, displaySize.y,
+                sourceRect,
                 captureWidth, captureHeight,
                 quality, delayMs);
 

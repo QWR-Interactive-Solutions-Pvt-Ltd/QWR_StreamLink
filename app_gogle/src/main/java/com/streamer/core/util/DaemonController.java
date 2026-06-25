@@ -1,4 +1,4 @@
-package com.qwr.gogle.util;
+package com.streamer.core.util;
 
 import android.content.Context;
 import android.util.Log;

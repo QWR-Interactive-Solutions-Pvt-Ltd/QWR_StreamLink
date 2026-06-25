@@ -1,10 +1,19 @@
 apply plugin: 'com.android.application'
+apply from: 'branding.gradle'
 
 android {
-    namespace 'com.qwr.gogle'
+    namespace 'com.streamer.core'
 
     defaultConfig {
-        applicationId "com.qwr.gogle"
+        applicationId branding.applicationId
+
+        manifestPlaceholders = [
+                intentActionStart: "${branding.intentActionPrefix}.START_STREAM".toString(),
+                intentActionStop : "${branding.intentActionPrefix}.STOP_STREAM".toString()
+        ]
+
+        buildConfigField "String", "INTENT_ACTION_START", "\"${branding.intentActionPrefix}.START_STREAM\""
+        buildConfigField "String", "INTENT_ACTION_STOP",  "\"${branding.intentActionPrefix}.STOP_STREAM\""
     }
 
     signingConfigs {
@@ -34,7 +43,7 @@ android {
             versionNameSuffix "-DEBUG"
             debuggable true
             signingConfig signingConfigs.develop
-            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+            resValue "string", "app_gogle_name", branding.appName
         }
         // Platform-signed debug build — installs as android.uid.system on real headsets.
         // Requires PLATFORM_* properties in gradle.properties.
@@ -42,7 +51,7 @@ android {
             versionNameSuffix "-DEBUG"
             debuggable true
             signingConfig signingConfigs.platform
-            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+            resValue "string", "app_gogle_name", branding.appName
         }
         release {
             postprocessing {
@@ -53,7 +62,7 @@ android {
                 proguardFile 'proguard-rules.pro'
             }
             signingConfig signingConfigs.develop
-            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+            resValue "string", "app_gogle_name", branding.appName
         }
         // Platform-signed release build — installs as android.uid.system on real headsets.
         // Requires PLATFORM_* properties in gradle.properties.
@@ -66,7 +75,7 @@ android {
                 proguardFile 'proguard-rules.pro'
             }
             signingConfig signingConfigs.platform
-            resValue "string", "app_gogle_name", "@string/app_gogle_name_prd"
+            resValue "string", "app_gogle_name", branding.appName
         }
     }
 
@@ -82,7 +91,7 @@ android {
         variant.outputs.all { output ->
             def buildType = variant.buildType.name
             def version = variant.versionName
-            outputFileName = new File("QWR-StreamLink-gogle_${buildType}_${version}.apk")
+            outputFileName = new File("${branding.apkPrefix}_${buildType}_${version}.apk")
         }
     }
 }

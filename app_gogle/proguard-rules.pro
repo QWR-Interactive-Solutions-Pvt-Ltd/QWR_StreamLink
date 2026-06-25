@@ -23,8 +23,3 @@
 -keep class org.slf4j.** { *; }
 -keep class org.slf4j.impl.** { *; }
 
-# Shizuku UserService
--keep class com.qwr.gogle.IShellService { *; }
--keep class com.qwr.gogle.IShellService$Stub { *; }
--keep class com.qwr.gogle.IShellService$Default { *; }
--keep class com.qwr.gogle.service.ShellService { *; }

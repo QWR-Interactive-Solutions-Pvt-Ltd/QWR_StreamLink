@@ -1,0 +1,38 @@
+// ============================================================================
+// BRANDING / WHITELABEL CONFIG
+// ============================================================================
+// Single source of truth for brand-specific values.
+// Edit this file to whitelabel app_gogle for a different product (e.g. Unity VR app).
+// After editing, rebuild: ./gradlew :app_gogle:assembleDebug
+//
+// What this file controls:
+//   - Visible app name (launcher label)
+//   - Android applicationId (package on device)
+//   - Broadcast intent action names (used by external Unity/Unreal apps)
+//   - APK output file name
+//
+// What this file does NOT control (swap these manually per brand):
+//   - App icon:  replace files in src/main/res/mipmap-*/ic_launcher.*
+//   - Theme colors: edit src/main/res/values/colors.xml
+//   - Splash screen drawable: edit src/main/res/drawable*/
+// ============================================================================
+
+ext.branding = [
+    // User-visible name shown in launcher and task switcher.
+    appName            : 'Streamer',
+
+    // Android applicationId — unique package id on the device.
+    // Two apps with the same applicationId cannot coexist; change this for each brand.
+    applicationId      : 'com.streamer.core',
+
+    // Prefix used to derive broadcast intent action names:
+    //   <prefix>.START_STREAM
+    //   <prefix>.STOP_STREAM
+    // External apps (Unity / Unreal) send these to start/stop streaming.
+    // Match this to whatever the partner app expects.
+    intentActionPrefix : 'com.streamer.core',
+
+    // APK output file name prefix.
+    // Final file = <apkPrefix>_<buildType>_<versionName>.apk
+    apkPrefix          : 'Streamer-Core'
+]

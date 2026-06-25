@@ -1,4 +1,4 @@
-package com.qwr.gogle.service;
+package com.streamer.core.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,9 +11,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
-import com.qwr.gogle.QwrGogleApplication;
-import com.qwr.gogle.R;
-import com.qwr.gogle.util.DaemonController;
+import com.streamer.core.R;
+import com.streamer.core.util.DaemonController;
 
 /**
  * Foreground service that manages the streaming daemon lifecycle.
@@ -38,7 +37,7 @@ public class ScreenCaptureService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Set eagerly BEFORE launching the background thread so that any concurrent
-        // onStartCommand call (e.g. QwrGogleApplication auto-start racing with a
+        // onStartCommand call (e.g. StreamerApplication auto-start racing with a
         // StreamCommandReceiver broadcast) sees isRunning=true and returns early.
         // If the actual daemon launch fails, isRunning is reset to false below.
         // If user explicitly stopped streaming, don't relaunch (START_STICKY restart)
