@@ -5,10 +5,6 @@ import org.gradle.api.JavaVersion
 
 ext {
     versions = [
-            app_gogle: [
-                    versionCode: 1,
-                    versionName: '1.0.0'
-            ],
             app_stream_viewer: [
                     versionCode: 1,
                     versionName: '1.0.0'
@@ -105,7 +101,7 @@ tasks.register('incrementAllVersions') {
     }
 }
 
-['app_gogle', 'app_stream_viewer', 'base'].each { module ->
+['app_stream_viewer', 'base'].each { module ->
     tasks.register("increment${module.capitalize()}Version") {
         description "Increments versionCode and versionName for ${module}."
         group 'Versioning'

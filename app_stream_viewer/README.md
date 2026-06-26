@@ -5,13 +5,13 @@ Android viewer app for QWR StreamLink. Discovers headsets on the local WiFi netw
 ## How it works
 
 ### 1. Device discovery
-On launch (and on each refresh), the app opens a UDP socket on port **8505** and listens continuously for **4 seconds**. The headset daemon broadcasts a packet every 3 seconds in the format:
+On launch (and on each refresh), the app opens a UDP socket on port **8505** and listens continuously for **4 seconds**. It expects broadcast packets in the format:
 
 ```
-QWR_STREAMLINK|IP|PORT|deviceName|deviceSerial
+QWR_VR|IP|PORT|deviceName|deviceSerial
 ```
 
-Devices are reported to the UI as they arrive — each discovered headset appears as a card in the device list immediately, without waiting for the full window to elapse. If multiple headsets are broadcasting, all of them are found within the same 4-second window. A `MulticastLock` is held during the scan to ensure broadcast packets are delivered on WiFi.
+The broadcast is emitted by the partner VR app (Unity) running on the headset, not by the streaming daemon itself. Devices are reported to the UI as they arrive — each discovered headset appears as a card in the device list immediately, without waiting for the full window to elapse. If multiple headsets are broadcasting, all of them are found within the same 4-second window. A `MulticastLock` is held during the scan to ensure broadcast packets are delivered on WiFi.
 
 ### 2. Reachability polling
 Every 5 seconds the app attempts a TCP connection to each listed headset on port **6776** to check if it is reachable. The status dot on the card updates accordingly:
