@@ -4,11 +4,22 @@ Android viewer app for receiving real-time screen streams from QWR VR headsets o
 
 > **Looking for the headset side?** The headset controller app and streaming daemon live in a separate repo: **[QWR_Headset_Streamer](https://github.com/QWR-Interactive-Solutions-Pvt-Ltd/QWR_Headset_Streamer)**. This repo only contains the viewer.
 
+## What this is paired with
+
+This viewer is built specifically for the **QWRVisionCare-VR** Unity app running on the headset. The pairing matters because:
+
+- **Discovery is owned by QWRVisionCare-VR**, not by the streaming daemon. The viewer only sees a headset when QWRVisionCare-VR is *running* on it — QWRVisionCare-VR is what broadcasts the `QWR_VR|…` UDP packet the viewer listens for.
+- **Streaming starts automatically when a therapy session begins** in QWRVisionCare-VR. The viewer doesn't start the stream; it just connects to whatever the headset is already streaming.
+- **If QWRVisionCare-VR isn't installed/running, the headset will not appear in the device list** — even if the streaming daemon is alive.
+
+If you want to use this viewer with a headset that isn't running QWRVisionCare-VR, you need to re-enable the streaming daemon's own UDP discovery broadcast. It's intentionally disabled in [QWR_Headset_Streamer](https://github.com/QWR-Interactive-Solutions-Pvt-Ltd/QWR_Headset_Streamer) to avoid colliding with the Unity broadcast — see `daemon_gogle/src/main/java/com/qwr/daemon/StreamServer.java` (the `udpBroadcastLoop` thread start is commented out around line 60). Uncomment it, rebuild the daemon, and the viewer will find the headset without QWRVisionCare-VR being involved.
+
 ## Prerequisites
 
 - `adb` installed on your PC
 - Android phone or tablet running Android 8.0 (API 26) or later
 - Phone/tablet on the same WiFi network as the headset
+- Headset running **QWRVisionCare-VR** (or, alternatively, a daemon build with UDP broadcast re-enabled — see above)
 
 ## Installation
 
@@ -32,7 +43,7 @@ The viewer is a normal Android app — no platform signing required.
 
 | Problem | Solution |
 |---------|----------|
-| Headset not in viewer list | Ensure same WiFi network; verify the headset's Unity app is broadcasting; tap refresh |
+| Headset not in viewer list | Confirm QWRVisionCare-VR is running on the headset (it owns discovery); ensure same WiFi network; tap refresh |
 | Viewer connected to WiFi but still can't reach headset | Turn off mobile data — Android may route traffic over cellular when WiFi has no internet |
 | Low FPS or lag | Lower quality in the in-stream control bar; check WiFi signal strength |
 

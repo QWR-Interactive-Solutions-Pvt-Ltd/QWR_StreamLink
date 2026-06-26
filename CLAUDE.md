@@ -51,19 +51,19 @@ The viewer is a pure consumer — it never broadcasts and never originates a str
 
 | Port | Protocol | Direction | Purpose |
 |------|----------|-----------|---------|
-| 8505 | UDP | listen | Discovery — listens for `QWR_VR\|IP\|PORT\|deviceName\|deviceSerial` broadcast from the headset's Unity partner app |
+| 8505 | UDP | listen | Discovery — listens for `QWR_VR\|IP\|PORT\|deviceName\|deviceSerial` broadcast from **QWRVisionCare-VR** (Unity app on the headset) |
 | 6776 | TCP | viewer → headset | JPEG frame stream. Wire format: `[4-byte big-endian int: length][JPEG bytes]` |
 | 6777 | TCP | viewer → headset | Measured FPS report (back-channel for the headset's monitoring) |
 | 6779 | TCP | viewer → headset | Control commands — `quality=N` (1–100), `delay=N` (frame interval ms, screenshot mode only), `mode` (returns `VD` or `SS`), `stop` |
 
-**Discovery prefix is `QWR_VR`**, not `QWR_STREAMLINK`. The Unity partner app on the headset owns discovery; the streaming daemon does not broadcast (its UDP broadcast is intentionally disabled in the headset repo). If you change the prefix here, the viewer will stop seeing any headsets.
+**Discovery prefix is `QWR_VR`**, not `QWR_STREAMLINK`. **QWRVisionCare-VR** (the Unity app on the headset) owns discovery; the streaming daemon does not broadcast (its UDP broadcast is intentionally disabled in the headset repo). If you change the prefix here, the viewer will stop seeing any headsets. If QWRVisionCare-VR is not running on the headset, the viewer will find nothing — that's expected. Streaming itself starts automatically when a therapy session begins inside QWRVisionCare-VR; the viewer just connects to the already-running stream.
 
 ### Viewer Flow
 `DeviceListActivity` (discovers devices via `AddressDiscoveryService`, grid layout with optional live preview thumbnails) → tap a card → `StreamActivity` (full-screen landscape stream) backed by `DownstreamService` (TCP connection to port 6776, JPEG frame receiving, FPS monitoring, auto-reconnect). Viewer sends quality commands (15/30/50/80) and delay commands to the headset control port 6779.
 
 ### Discovery Flow
 1. Open UDP socket on 8505, hold a `MulticastLock`, listen for 4 seconds
-2. Parse incoming packets — must start with `QWR_VR` prefix, pipe-delimited, at least 4 parts (`prefix|ip|port|deviceName[|serial]`)
+2. Parse incoming packets — must start with `QWR_VR` prefix (emitted by QWRVisionCare-VR), pipe-delimited, at least 4 parts (`prefix|ip|port|deviceName[|serial]`)
 3. Dedup by IP; report each new headset immediately to the UI
 4. Every 5 seconds, TCP-probe each listed headset on port 6776 to update its reachability dot
 5. While a stream is active, skip the TCP probe for that headset (daemon only accepts one connection at a time) — infer status from service state
