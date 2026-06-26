@@ -6,13 +6,13 @@ import org.gradle.api.JavaVersion
 ext {
     versions = [
             app_stream_viewer: [
-                    versionCode: 2,
-                    versionName: '1.1.0'
+                versionCode: 2,
+                versionName: '1.1.0'
             ],
             base: [
-                    versionCode: 1,
-                    versionName: '1.0.0'
-            ]
+                versionCode: 1,
+                versionName: '1.0.0'
+            ],
     ]
 }
 
@@ -135,23 +135,28 @@ def updateVersionInFile() {
     def lines = file.readLines()
     def newLines = []
     def inVersionsBlock = false
+    def bracketDepth = 0
     def indent = '    '
 
     lines.each { line ->
-        if (line.trim().startsWith('versions = [')) {
-            inVersionsBlock = true
+        if (!inVersionsBlock) {
             newLines << line
-        } else if (inVersionsBlock && line.trim() == ']') {
-            rootProject.ext.versions.each { module, config ->
-                newLines << "${indent}${indent}${module}: ["
-                newLines << "${indent}${indent}${indent}versionCode: ${config.versionCode},"
-                newLines << "${indent}${indent}${indent}versionName: '${config.versionName}'"
-                newLines << "${indent}${indent}],"
+            if (line.trim().startsWith('versions = [')) {
+                inVersionsBlock = true
+                bracketDepth = line.count('[') - line.count(']')
             }
-            newLines << line
-            inVersionsBlock = false
-        } else if (!inVersionsBlock || !line.trim().startsWith('app_') && !line.trim().startsWith('base:')) {
-            newLines << line
+        } else {
+            bracketDepth += line.count('[') - line.count(']')
+            if (bracketDepth == 0) {
+                rootProject.ext.versions.each { module, config ->
+                    newLines << "${indent * 3}${module}: ["
+                    newLines << "${indent * 4}versionCode: ${config.versionCode},"
+                    newLines << "${indent * 4}versionName: '${config.versionName}'"
+                    newLines << "${indent * 3}],"
+                }
+                newLines << line
+                inVersionsBlock = false
+            }
         }
     }
 
