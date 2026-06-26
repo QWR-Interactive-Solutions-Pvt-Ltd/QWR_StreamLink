@@ -4,64 +4,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-QWR_StreamLink is a multi-module Android project for real-time screen streaming from VR headsets to an Android viewer app over WiFi. Three modules:
+QWR_StreamLink is the **viewer side** of the QWR VR screen-streaming stack. Single Android module:
 
-- **app_gogle** — Headset controller app (`com.qwr.gogle`). System app (UID 1000) that manages a standalone daemon for screen capture. Shows device info, streaming status, and Start/Stop toggle. Also accepts intent-based start/stop from external apps (Unity/Unreal).
-- **app_stream_viewer** — Viewer app (`com.qwr.streamviewer`). Discovers headsets via UDP, shows device list with live previews, renders live JPEG stream full-screen.
-- **daemon_gogle** — Standalone daemon JAR (`com.qwr.daemon`). Runs via `app_process` as an independent process, captures screen using SurfaceControl hidden API, serves JPEG stream over TCP.
+- **app_stream_viewer** — Phone/tablet viewer app (`com.qwr.streamviewer`). Discovers headsets via UDP, shows a device list with live preview thumbnails, renders the live JPEG stream full-screen, and sends quality / FPS commands back to the headset.
+
+> The headset controller app and streaming daemon (formerly `app_gogle` and `daemon_gogle` in this repo) now live in a separate repository: **[QWR_Headset_Streamer](https://github.com/QWR-Interactive-Solutions-Pvt-Ltd/QWR_Headset_Streamer)**. If a task asks about the daemon, system app, SurfaceControl capture, cgroup escape, or platform signing — that's the other repo.
 
 ## Build Commands
 
 ```bash
-# Build headset app (debug)
-./gradlew :app_gogle:assembleDebug
-
-# Build headset app (release with ProGuard)
-./gradlew :app_gogle:assembleRelease
-
-# Build headset app (platform-signed — requires PLATFORM_* in gradle.properties)
-./gradlew :app_gogle:assembleRelease_system
-
-# Build viewer app
+# Debug build (auto-signed with debug keystore)
 ./gradlew :app_stream_viewer:assembleDebug
 
-# Build both release
-./gradlew :app_gogle:assembleRelease :app_stream_viewer:assembleRelease
+# Release build (produces unsigned APK — sign externally)
+./gradlew :app_stream_viewer:assembleRelease
 
-# Build daemon JAR only
-./gradlew :daemon_gogle:buildDaemonDex
-
-# Run tests
+# Tests
 ./gradlew test                          # All unit tests
 ./gradlew connectedAndroidTest          # Instrumented tests (requires device)
 
 # Version management
 ./gradlew incrementAllVersions -Ptype=PATCH    # MAJOR, MINOR, or PATCH
-./gradlew incrementApp_gogleVersion -Ptype=MINOR
+./gradlew incrementApp_stream_viewerVersion -Ptype=MINOR
 
 # Install via ADB
-adb install -r app_gogle/build/outputs/apk/debug_develop/QWR-StreamLink-gogle_debug_develop_*.apk
 adb install -r app_stream_viewer/build/outputs/apk/debug/app_stream_viewer-debug.apk
 ```
 
 ## Build Configuration
 
 - **AGP**: 8.11.1, **Kotlin**: 2.2.0, **Java**: 21, **NDK**: 27.0.12099909
-- **SDK**: compileSdk 35, minSdk 26, targetSdk 35
+- **SDK**: compileSdk 35 (viewer module uses 36), minSdk 26, targetSdk 35
 - Versions are centralized in the top-level `build.gradle` `ext.versions` block
-- The default `debug` and `release` build types are filtered out in app_gogle; use named variants instead
-- APK output naming: `QWR-StreamLink-gogle_{buildType}_{versionName}.apk`
-- The `debug_system` / `release_system` variants require platform signing keys configured in `gradle.properties`
-- The daemon JAR is automatically built and bundled into app_gogle's assets via `copyDaemonJar` task
-
-### app_gogle Build Variants
-
-| Variant | Debuggable | ProGuard | Signing | Notes |
-|---------|------------|----------|---------|-------|
-| `debug` | yes | no | develop | Day-to-day development |
-| `debug_system` | yes | no | platform | Debug on real headsets (system app) |
-| `release` | no | yes | develop | Release build, sign externally |
-| `release_system` | no | yes | platform | Release for real headsets (system app) |
+- No platform signing required — viewer is a normal Android app
 
 ## Architecture
 
@@ -69,52 +44,29 @@ adb install -r app_stream_viewer/build/outputs/apk/debug/app_stream_viewer-debug
 - **Java only** — no Kotlin source files
 - **Activity + Service pattern** — not MVVM/MVI; uses traditional Android services for background work
 - **Threading**: Handler/Looper for main thread, explicit `Thread` for background work
-- **System app**: `sharedUserId="android.uid.system"` runs as UID 1000
-- **Daemon process**: Standalone `app_process` that captures screen via SurfaceControl and survives app force-stop via cgroup escape
 
-### Streaming Protocol
-- **TCP port 6776**: JPEG frame stream. Wire format: `[4-byte big-endian int: length][JPEG bytes]`
-- **UDP port 8505**: Discovery broadcast is **disabled** (commented out in `daemon_gogle/StreamServer.java`). Discovery is delegated to the partner VR app that integrates this stack. Historical payload was `QWR_STREAMLINK|IP|PORT|deviceName|deviceSerial` every 3s — kept in code for easy re-enable.
-- **TCP port 8505**: Discovery listener still active (idle) — responds with `[4-byte big-endian int: length][device name bytes]` if a client connects
-- **TCP port 6779**: Control port. Text commands: `stop` (shutdown), `quality=N` (JPEG quality 1-100), `delay=N` (frame interval ms, screenshot mode only), `mode` (returns `VD` or `SS`)
+### Streaming Protocol (consumer side)
 
-### Screen Capture (daemon_gogle)
-- Uses **SurfaceControl** hidden API (same technique as scrcpy) — no MediaProjection, no consent dialog
-- Pipeline: SurfaceControl.createDisplay() → VirtualDisplay (mirrors main display) → ImageReader (RGBA_8888) → Bitmap → JPEG → frame queue (max 3)
-- Captures at 30% of display size, JPEG quality 30 (adjustable via control port)
-- sourceRect must be full display size, destRect is capture size — do NOT make sourceRect equal to destRect
-- **Hybrid capture**: Starts in virtual display mode (event-driven). After 4 seconds, if fewer than 8 frames captured (~2 FPS), auto-switches to screenshot polling mode. This handles headsets where VR compositor bypasses SurfaceFlinger (e.g. YVR with ATW overlay)
-- Achieves ~60 FPS on WYWK firmware headsets
+The viewer is a pure consumer — it never broadcasts and never originates a stream. All connections are viewer → headset.
 
-### Daemon Lifecycle
-- **Start**: `ScreenCaptureService` checks if daemon JAR needs installing or updating (SHA-256 hash comparison of bundled vs installed JAR). If a stale daemon is running with an outdated JAR, it stops it first, waits 1.5s, then launches the new one via `setsid app_process`. Moves daemon PID to root cgroup (`/sys/fs/cgroup/cgroup.procs`) so it survives `forceStopPackage`
-- **Survive**: VR launcher (`XRVDManager`) calls `killApplication`/`forceStopPackage` when dismissing app's VR panel. Daemon survives because it's in the root cgroup, not the app's cgroup
-- **Auto-relaunch**: SharedPreference `daemon_should_run` tracks user intent. On app restart (or boot), daemon is relaunched if the flag is set
-- **Stop**: Explicit user action sends `stop` command to control port 6779. Also clears `daemon_should_run`
+| Port | Protocol | Direction | Purpose |
+|------|----------|-----------|---------|
+| 8505 | UDP | listen | Discovery — listens for `QWR_VR\|IP\|PORT\|deviceName\|deviceSerial` broadcast from the headset's Unity partner app |
+| 6776 | TCP | viewer → headset | JPEG frame stream. Wire format: `[4-byte big-endian int: length][JPEG bytes]` |
+| 6777 | TCP | viewer → headset | Measured FPS report (back-channel for the headset's monitoring) |
+| 6779 | TCP | viewer → headset | Control commands — `quality=N` (1–100), `delay=N` (frame interval ms, screenshot mode only), `mode` (returns `VD` or `SS`), `stop` |
 
-### Intent-Based Control
-External apps (Unity/Unreal) can start/stop streaming via broadcasts:
-- `com.qwr.gogle.START_STREAM` — starts daemon (app process auto-created if needed)
-- `com.qwr.gogle.STOP_STREAM` — stops daemon
+**Discovery prefix is `QWR_VR`**, not `QWR_STREAMLINK`. The Unity partner app on the headset owns discovery; the streaming daemon does not broadcast (its UDP broadcast is intentionally disabled in the headset repo). If you change the prefix here, the viewer will stop seeing any headsets.
 
-### app_gogle Flow
-`SplashScreenActivity` — single-screen controller UI. Shows device info (model, serial, IP) and streaming status (red/green dot). Tap Start → `ScreenCaptureService` starts → daemon launches. Tap Stop → daemon stops. Tap Quit → `finishAffinity()` (daemon keeps running). Status polls every 2s via `DaemonController.isDaemonRunning()`.
+### Viewer Flow
+`DeviceListActivity` (discovers devices via `AddressDiscoveryService`, grid layout with optional live preview thumbnails) → tap a card → `StreamActivity` (full-screen landscape stream) backed by `DownstreamService` (TCP connection to port 6776, JPEG frame receiving, FPS monitoring, auto-reconnect). Viewer sends quality commands (15/30/50/80) and delay commands to the headset control port 6779.
 
-### app_stream_viewer Flow
-`DeviceListActivity` (discovers devices via `AddressDiscoveryService`, grid layout with optional live preview thumbnails) → `StreamActivity` (full-screen landscape stream) backed by `DownstreamService` (TCP connection to port 6776, JPEG frame receiving, FPS monitoring, auto-reconnect). Viewer sends quality commands (15/30/50/80) to headset control port 6779.
+### Discovery Flow
+1. Open UDP socket on 8505, hold a `MulticastLock`, listen for 4 seconds
+2. Parse incoming packets — must start with `QWR_VR` prefix, pipe-delimited, at least 4 parts (`prefix|ip|port|deviceName[|serial]`)
+3. Dedup by IP; report each new headset immediately to the UI
+4. Every 5 seconds, TCP-probe each listed headset on port 6776 to update its reachability dot
+5. While a stream is active, skip the TCP probe for that headset (daemon only accepts one connection at a time) — infer status from service state
 
 ### Adding a New Headset Icon
-Map device model name prefix to drawable in `HeadsetIconConfig.java` (case-insensitive prefix matching, first match wins). Current: `SXR`, `VRone_Edu`, default fallback.
-
-### SSNWT VR Headset Constraints
-- VR launcher (`XRVDManager`) calls `forceStopPackage()` when any app's VR panel is dismissed — hardcoded, no workaround
-- Daemon must escape app's cgroup to survive force-stop
-- SurfaceControl capture gets ~60 FPS on WYWK firmware, ~2 FPS on QWR firmware (firmware-level throttling)
-
-### Port Constants
-| Port | Protocol | Purpose |
-|------|----------|---------|
-| 6776 | TCP | JPEG frame stream |
-| 6777 | TCP | FPS data (viewer side) |
-| 6779 | TCP | Control port |
-| 8505 | TCP | Discovery listener (UDP broadcast disabled) |
+Map device model name prefix to drawable in `HeadsetIconConfig` inside `DeviceListAdapter.java` (case-insensitive prefix matching, first match wins). Current entries: `SXR`, `VRone_Edu`, default fallback.
